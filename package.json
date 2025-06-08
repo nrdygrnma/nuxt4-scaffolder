@@ -1,0 +1,34 @@
+{
+  "name": "nuxt4-scaffolder",
+  "version": "1.0.0",
+  "description": "A CLI tool to generate a Nuxt 4 application with @Nuxt/Icon, @Nuxt/Image, shadcn-nuxt, Tailwind CSS and Bun as default package manager.",
+  "module": "index.js",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "create-nuxt-4": "index.js"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "prettier": "^3.5.3"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "chalk": "^5.4.1",
+    "execa": "^9.6.0",
+    "fs-extra": "^11.3.0",
+    "inquirer": "^12.6.3",
+    "ora": "^8.2.0"
+  },
+  "keywords": [
+    "cli",
+    "scaffold",
+    "starter",
+    "create",
+    "nuxt"
+  ],
+  "author": "Belinda Baumgartner",
+  "license": "MIT"
+}
