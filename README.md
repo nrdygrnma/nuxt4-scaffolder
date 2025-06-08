@@ -2,7 +2,7 @@
 
 A powerful, Bun-based CLI to scaffold and configure Nuxt 4 projects with:
 
-- **Nuxt Image** & **Nuxt Icon** modules
+- **Nuxt Image**, **Nuxt Icon** and **Pinia** modules
 - **shadcn-nuxt** component library
 - **Tailwind CSS** + Vite integration
 - TypeScript support
@@ -21,7 +21,7 @@ A powerful, Bun-based CLI to scaffold and configure Nuxt 4 projects with:
 
 ```bash
 # Clone the repo
-git clone https://github.com/yourusername/nuxt4-scaffolder.git
+git clone https://github.com/nrdygrnma/nuxt4-scaffolder.git
 cd nuxt4-scaffolder
 
 # Install dependencies
@@ -41,7 +41,7 @@ bunx create-nuxt-4
 
 This will automatically:
 
-1. Initialize a Nuxt 4 project (with Nuxt Image & Icon) using Bun.
+1. Initialize a Nuxt 4 project (with Nuxt Image, Nuxt Icon and Pinia) using Bun.
 2. Update `package.json` to set the `name` to your project.
 3. Configure `nuxt.config.ts` for Nuxt 4 compatibility.
 4. Install TypeScript and Tailwind CSS, and generate a Tailwind config.

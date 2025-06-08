@@ -20,14 +20,19 @@ import path from "path";
   ]);
 
   console.log(
-    `🚀 Creating Nuxt 4 app ${chalk.bold(projectName)} + @Nuxt/Icon + @Nuxt/Image + shadcn-nuxt and Bun as default package manager`,
+    `🚀 Scaffolding Nuxt 4 app ${chalk.bold(projectName)} with @Nuxt/Icon, @Nuxt/Image, Pinia, Tailwind CSS, shadcn-nuxt and Bun as default package manager`,
   );
+  const spinner = ora("Initializing Nuxt setup...").start();
+  spinner.info("Creating Nuxt 3 app...");
+  spinner.info("Upgrading Nuxt...");
+  spinner.info("Adding @Nuxt/Image module...");
+  spinner.info("Adding @Nuxt/Icon module...");
+  spinner.info("Adding Pinia module...");
 
+  // 2. Create Nuxt 3 app
   try {
-    // 2. Create Nuxt 3 app
-    const spinner = ora("Initializing Nuxt app...").start();
     await execa(
-      `bunx nuxi@latest init ${projectName} --package-manager bun --force --gitInit --modules @nuxt/image,@nuxt/icon && cd ${projectName} && bunx nuxt upgrade --dedupe`,
+      `bunx nuxi@latest init ${projectName} --package-manager bun --force --gitInit --modules @nuxt/image,@nuxt/icon,pinia && cd ${projectName} && bunx nuxt upgrade --dedupe`,
       {
         stdio: "ignore",
         shell: true,
@@ -94,7 +99,7 @@ import path from "path";
     spinner.info("Updating modules array and injecting shadcn config...");
     let cfg2 = await fs.readFile(configPath, "utf-8");
     // 1) Merge 'shadcn-nuxt' into any existing modules
-    cfg2 = cfg2.replace(/modules\s*:\s*\[([^\]]*)\]/, (_m, mods) => {
+    cfg2 = cfg2.replace(/modules\s*:\s*\[([^\]]*)]/, (_m, mods) => {
       const list = mods
         .split(",")
         .map((s) => s.trim().replace(/^['"\s]+|['"\s]+$/g, ""));
@@ -104,7 +109,7 @@ import path from "path";
     // 2) Insert the shadcn config object if it isn’t already there
     if (!cfg2.includes("shadcn:")) {
       cfg2 = cfg2.replace(
-        /modules\s*:\s*\[[^\]]*\]/,
+        /modules\s*:\s*\[[^\]]*]/,
         (match) => `${match},
   shadcn: {
     /**
@@ -152,6 +157,7 @@ import path from "path";
       "layouts",
       "lib",
       "assets",
+      "stores",
     ];
     for (const item of items) {
       const src = path.join(projectName, item);
@@ -216,11 +222,29 @@ import path from "path";
 <script lang="ts" setup>
 import { Button } from "~/components/ui/button";
 </script>
-
 `;
     await fs.writeFile(indexVuePath, indexVueContent, "utf-8");
 
-    // 12. Add a sample shadcn Button component
+    // 12. Add an example Pinia store
+    spinner.info("Creating example Pinia store...");
+    const storesDir = path.join(projectName, "app", "stores");
+    await fse.ensureDir(storesDir);
+    const storeContent = `
+export const useExampleStore = defineStore("example", () => {
+  const count = ref(0);
+  const name = ref("Pinia Test");
+  const doubleCount = computed(() => count.value * 2);
+  function increment() { count.value++; }  
+  return { count, name, doubleCount, increment };
+});
+`;
+    await fs.writeFile(
+      path.join(storesDir, "example.ts"),
+      storeContent,
+      "utf-8",
+    );
+
+    // 13. Add a sample shadcn Button component
     spinner.info("Adding shadcn Button component...");
     await execa(
       `cd ${projectName} && bunx --bun shadcn-vue@latest add button`,
@@ -229,9 +253,8 @@ import { Button } from "~/components/ui/button";
         shell: true,
       },
     );
-
     spinner.succeed(
-      `🎉 Nuxt 4 project ${projectName} has been created with @Nuxt/Icon, @Nuxt/Image and shadcn-nuxt!`,
+      `🎉 Nuxt 4 project ${projectName} has been created with @Nuxt/Icon, @Nuxt/Image, Pinia, Tailwind CSS and shadcn-nuxt!`,
     );
     console.log(`
 ➡️ Next steps:
