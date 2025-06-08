@@ -21,7 +21,7 @@ A powerful, Bun-based CLI to scaffold and configure Nuxt 4 projects with:
 
 ```bash
 # Clone the repo
-git clone https://github.com/yourusername/nuxt4-scaffolder.git
+git clone https://github.com/nrdygrnma/nuxt4-scaffolder.git
 cd nuxt4-scaffolder
 
 # Install dependencies
