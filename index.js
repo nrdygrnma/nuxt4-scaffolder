@@ -70,19 +70,59 @@ import path from "path";
     spinner.info("Updating tsconfig.json with path mappings...");
     const tsconfigPath = path.join(projectName, "tsconfig.json");
     if (await fse.pathExists(tsconfigPath)) {
-      const tsconfig = JSON.parse(await fs.readFile(tsconfigPath, "utf-8"));
-      
-      // Add baseUrl and paths if they don't exist
-      if (!tsconfig.compilerOptions) {
-        tsconfig.compilerOptions = {};
+      try {
+        // Read the file content
+        const tsconfigContent = await fs.readFile(tsconfigPath, "utf-8");
+        
+        // Remove comments before parsing (both // and /* */ style comments)
+        const contentWithoutComments = tsconfigContent
+          .replace(/\/\/.*$/gm, '') // Remove single line comments
+          .replace(/\/\*[\s\S]*?\*\//g, ''); // Remove multi-line comments
+        
+        const tsconfig = JSON.parse(contentWithoutComments);
+        
+        // Add baseUrl and paths if they don't exist
+        if (!tsconfig.compilerOptions) {
+          tsconfig.compilerOptions = {};
+        }
+        
+        tsconfig.compilerOptions.baseUrl = ".";
+        tsconfig.compilerOptions.paths = {
+          "@/*": ["./app/*"]
+        };
+        
+        await fs.writeFile(tsconfigPath, JSON.stringify(tsconfig, null, 2), "utf-8");
+      } catch (error) {
+        spinner.warn(`Error updating tsconfig.json: ${error.message}`);
+        spinner.info("Attempting to create path mappings manually...");
+        
+        try {
+          // Fallback: Try to add the configuration using regex
+          const tsconfigContent = await fs.readFile(tsconfigPath, "utf-8");
+          
+          // Check if paths already exists
+          if (!tsconfigContent.includes('"paths"')) {
+            // Add paths after baseUrl if it exists
+            let updatedContent;
+            if (tsconfigContent.includes('"baseUrl"')) {
+              updatedContent = tsconfigContent.replace(
+                /"baseUrl"\s*:\s*"[^"]*"(,)?/,
+                '"baseUrl": ".",$1\n    "paths": {\n      "@/*": ["./app/*"]\n    }'
+              );
+            } else {
+              // Add both baseUrl and paths after compilerOptions opening
+              updatedContent = tsconfigContent.replace(
+                /"compilerOptions"\s*:\s*{/,
+                '"compilerOptions": {\n    "baseUrl": ".",\n    "paths": {\n      "@/*": ["./app/*"]\n    },'
+              );
+            }
+            
+            await fs.writeFile(tsconfigPath, updatedContent, "utf-8");
+          }
+        } catch (fallbackError) {
+          spinner.warn(`Fallback method also failed: ${fallbackError.message}`);
+        }
       }
-      
-      tsconfig.compilerOptions.baseUrl = ".";
-      tsconfig.compilerOptions.paths = {
-        "@/*": ["./app/*"]
-      };
-      
-      await fs.writeFile(tsconfigPath, JSON.stringify(tsconfig, null, 2), "utf-8");
     } else {
       spinner.warn("tsconfig.json not found, skipping path mapping update");
     }
