@@ -59,7 +59,7 @@ import path from "path";
     // 4. Install TypeScript & TailwindCSS
     spinner.info("Installing TypeScript...");
     await execa(
-      `cd ${projectName} && bun add -d typescript && bun add tailwindcss @tailwindcss/vite`,
+      `cd ${projectName} && bun add -d typescript prettier && bun add tailwindcss @tailwindcss/vite`,
       {
         stdio: "ignore",
         shell: true,
@@ -114,7 +114,7 @@ import path from "path";
               // Add both baseUrl and paths after compilerOptions opening
               updatedContent = tsconfigContent.replace(
                 /"compilerOptions"\s*:\s*{/,
-                '"compilerOptions": {\n    "baseUrl": ".",\n    "paths": {\n      "@/*": ["./app/*"]\n    },'
+                '"compilerOptions": {\n    "baseUrl": ".",\n    "paths": {\n      "@/*": ["./app/*"],\n      "~/*": ["./app/*"]\n    },'
               );
             }
             
@@ -128,11 +128,8 @@ import path from "path";
       spinner.warn("tsconfig.json not found, skipping path mapping update");
     }
     spinner.info("Installing Tailwind CSS...");
-    // Create app directory if it doesn't exist yet
-    const tempAppDir = path.join(projectName, "app");
-    await fse.ensureDir(tempAppDir);
-    // Create assets/css directory in the app folder
-    const cssDir = path.join(tempAppDir, "assets", "css");
+    // Create assets/css directory in the project root
+    const cssDir = path.join(projectName, "assets", "css");
     await fse.ensureDir(cssDir);
     const cssPath = path.join(cssDir, "tailwind.css");
     await fs.writeFile(cssPath, `@import "tailwindcss";`, "utf-8");
@@ -141,7 +138,7 @@ import path from "path";
     cfg1 = cfg1.replace(
       /defineNuxtConfig\(\{/,
       `defineNuxtConfig({
-  css: ['~/app/assets/css/tailwind.css'],
+  css: ['~/assets/css/tailwind.css'],
   vite: { plugins: [tailwindcss()] },
 `,
     );
@@ -268,11 +265,9 @@ import path from "path";
     const appVueDest = path.join(appDir, "app.vue");
     const appVueContent = `<template>
   <div>
-    <NuxtRouteAnnouncer />
-    <NuxtLoadingIndicator />
-    <NuxtLayout>
-      <NuxtPage />
-    </NuxtLayout>
+      <NuxtLayout>
+          <NuxtPage />
+      </NuxtLayout>
   </div>
 </template>
 `;
