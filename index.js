@@ -23,16 +23,15 @@ import path from "path";
     `🚀 Scaffolding Nuxt 4 app ${chalk.bold(projectName)} with @Nuxt/Icon, @Nuxt/Image, Pinia, Tailwind CSS, shadcn-nuxt and Bun as default package manager`,
   );
   const spinner = ora("Initializing Nuxt setup...").start();
-  spinner.info("Creating Nuxt 3 app...");
-  spinner.info("Upgrading Nuxt...");
+  spinner.info("Creating Nuxt 4 app...");
   spinner.info("Adding @Nuxt/Image module...");
   spinner.info("Adding @Nuxt/Icon module...");
   spinner.info("Adding Pinia module...");
 
-  // 2. Create Nuxt 3 app
+  // 2. Create Nuxt 4 app
   try {
     await execa(
-      `bunx nuxi@latest init ${projectName} --package-manager bun --force --gitInit --modules @nuxt/image,@nuxt/icon,pinia && cd ${projectName} && bunx nuxt upgrade --dedupe`,
+      `bunx nuxi@latest init ${projectName} --package-manager bun --force --gitInit --modules @nuxt/image,@nuxt/icon,pinia --nuxt-version 4`,
       {
         stdio: "ignore",
         shell: true,
@@ -45,14 +44,15 @@ import path from "path";
     pkgObj.name = projectName;
     await fs.writeFile(pkgPath, JSON.stringify(pkgObj, null, 2), "utf-8");
 
-    // 3. Configure nuxt.config.ts (modules, future compatibility, shadcn config)
+    // 3. Configure nuxt.config.ts (modules, shadcn config)
     spinner.info("Configuring nuxt.config.ts...");
     const configPath = path.join(projectName, "nuxt.config.ts");
     let cfg = await fs.readFile(configPath, "utf-8");
+    // No need to set compatibility version since we're directly using Nuxt 4
+    // Just ensure the config is properly formatted
     cfg = cfg.replace(
       /defineNuxtConfig\(\{/,
-      `defineNuxtConfig({
-  future: { compatibilityVersion: 4 },`,
+      `defineNuxtConfig({`,
     );
     await fs.writeFile(configPath, cfg, "utf-8");
 
