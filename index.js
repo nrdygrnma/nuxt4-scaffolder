@@ -138,35 +138,58 @@ import path from "path";
 
     // 7. Set up shadcn-vue
     spinner.info("Setting up shadcn-vue...");
-    await execa(
-      `cd ${projectName} && bunx --bun shadcn-vue init --defaults --silent`,
-      {
-        stdio: "ignore",
-        shell: true,
-      },
-    );
+    try {
+      await execa(
+        `cd ${projectName} && bunx --bun shadcn-vue init --defaults --silent`,
+        {
+          stdio: "ignore",
+          shell: true,
+        },
+      );
+      spinner.succeed("shadcn-vue initialized successfully");
+    } catch (error) {
+      spinner.warn("shadcn-vue initialization failed, continuing without it");
+      console.log("You can manually install shadcn-vue later if needed");
+    }
 
-    // 8. Reorganize project structure into app/ (including assets)
-    spinner.info("Reorganizing project structure into app/...");
+    // 8. Reorganize project structure into app/ (including assets) if needed
     const appDir = path.join(projectName, "app");
     await fse.ensureDir(appDir);
-    const items = [
-      "components",
-      "composables",
-      "pages",
-      "layouts",
-      "lib",
-      "assets",
-      "stores",
-    ];
-    for (const item of items) {
-      const src = path.join(projectName, item);
-      const dest = path.join(appDir, item);
-      // Always ensure the directory exists in the app folder
-      await fse.ensureDir(dest);
-      // If source exists, move its contents into the new directory
-      if (await fse.pathExists(src)) {
-        await fse.move(src, dest, { overwrite: true });
+    
+    // Check if this is already a Nuxt 4 project with app/ structure
+    const isNuxt4Structure = await fse.pathExists(appDir);
+    let hasAppContents = false;
+    if (isNuxt4Structure) {
+      try {
+        const files = await fs.readdir(appDir);
+        hasAppContents = files.length > 0;
+      } catch (error) {
+        hasAppContents = false;
+      }
+    }
+    
+    if (isNuxt4Structure && hasAppContents) {
+      spinner.info("Detected existing Nuxt 4 folder structure, skipping reorganization...");
+    } else {
+      spinner.info("Reorganizing project structure into app/...");
+      const items = [
+        "components",
+        "composables",
+        "pages",
+        "layouts",
+        "lib",
+        "assets",
+        "stores",
+      ];
+      for (const item of items) {
+        const src = path.join(projectName, item);
+        const dest = path.join(appDir, item);
+        // Always ensure the directory exists in the app folder
+        await fse.ensureDir(dest);
+        // If source exists, move its contents into the new directory
+        if (await fse.pathExists(src)) {
+          await fse.move(src, dest, { overwrite: true });
+        }
       }
     }
 
@@ -175,13 +198,10 @@ import path from "path";
       shell: true,
     });
 
-    // 9. Move app.vue into the app folder
+    // 9. Handle app.vue (move or create as needed)
     const appVueSrc = path.join(projectName, "app.vue");
     const appVueDest = path.join(appDir, "app.vue");
-    if (await fse.pathExists(appVueSrc)) {
-      await fse.move(appVueSrc, appVueDest);
-      // Overwrite with desired template
-      const appVueContent = `<template>
+    const appVueContent = `<template>
   <div>
     <NuxtRouteAnnouncer />
     <NuxtLoadingIndicator />
@@ -191,11 +211,24 @@ import path from "path";
   </div>
 </template>
 `;
+
+    // If we're not in a Nuxt 4 structure and app.vue exists at root, move it
+    if (!isNuxt4Structure && await fse.pathExists(appVueSrc)) {
+      spinner.info("Moving app.vue to app/ directory...");
+      await fse.move(appVueSrc, appVueDest);
+      await fs.writeFile(appVueDest, appVueContent, "utf-8");
+    } 
+    // If we're in a Nuxt 4 structure but app.vue doesn't exist in app/ folder, create it
+    else if (!await fse.pathExists(appVueDest)) {
+      spinner.info("Creating app.vue in app/ directory...");
       await fs.writeFile(appVueDest, appVueContent, "utf-8");
     }
+    // Otherwise, app.vue already exists in the right place
+    else {
+      spinner.info("app.vue already exists in app/ directory");
+    }
 
-    // 10. Create default layout
-    spinner.info("Creating default layout...");
+    // 10. Create default layout if it doesn't exist
     const layoutDir = path.join(appDir, "layouts");
     await fse.ensureDir(layoutDir);
     const defaultLayoutPath = path.join(layoutDir, "default.vue");
@@ -205,10 +238,15 @@ import path from "path";
   </div>
 </template>
 `;
-    await fs.writeFile(defaultLayoutPath, defaultLayoutContent, "utf-8");
+    
+    if (await fse.pathExists(defaultLayoutPath)) {
+      spinner.info("Default layout already exists, skipping creation");
+    } else {
+      spinner.info("Creating default layout...");
+      await fs.writeFile(defaultLayoutPath, defaultLayoutContent, "utf-8");
+    }
 
-    // 11. Create index.vue page
-    spinner.info("Creating pages/index.vue...");
+    // 11. Create index.vue page if it doesn't exist
     const pageDir = path.join(appDir, "pages");
     await fse.ensureDir(pageDir);
     const indexVuePath = path.join(pageDir, "index.vue");
@@ -223,12 +261,18 @@ import path from "path";
 import { Button } from "~/components/ui/button";
 </script>
 `;
-    await fs.writeFile(indexVuePath, indexVueContent, "utf-8");
+    
+    if (await fse.pathExists(indexVuePath)) {
+      spinner.info("Index page already exists, skipping creation");
+    } else {
+      spinner.info("Creating pages/index.vue...");
+      await fs.writeFile(indexVuePath, indexVueContent, "utf-8");
+    }
 
-    // 12. Add an example Pinia store
-    spinner.info("Creating example Pinia store...");
+    // 12. Add an example Pinia store if it doesn't exist
     const storesDir = path.join(projectName, "app", "stores");
     await fse.ensureDir(storesDir);
+    const storeFilePath = path.join(storesDir, "example.ts");
     const storeContent = `
 export const useExampleStore = defineStore("example", () => {
   const count = ref(0);
@@ -238,21 +282,50 @@ export const useExampleStore = defineStore("example", () => {
   return { count, name, doubleCount, increment };
 });
 `;
-    await fs.writeFile(
-      path.join(storesDir, "example.ts"),
-      storeContent,
-      "utf-8",
-    );
+    
+    if (await fse.pathExists(storeFilePath)) {
+      spinner.info("Example Pinia store already exists, skipping creation");
+    } else {
+      spinner.info("Creating example Pinia store...");
+      await fs.writeFile(storeFilePath, storeContent, "utf-8");
+    }
 
-    // 13. Add a sample shadcn Button component
-    spinner.info("Adding shadcn Button component...");
-    await execa(
-      `cd ${projectName} && bunx --bun shadcn-vue add button`,
-      {
-        stdio: "ignore",
-        shell: true,
-      },
-    );
+    // 13. Add a sample shadcn Button component if it doesn't exist
+    // Ensure components/ui directory exists
+    const componentsUiDir = path.join(projectName, "app", "components", "ui");
+    await fse.ensureDir(componentsUiDir);
+    
+    // Check if button component already exists
+    const buttonComponentPath = path.join(componentsUiDir, "button.vue");
+    if (await fse.pathExists(buttonComponentPath)) {
+      spinner.info("shadcn Button component already exists, skipping creation");
+    } else {
+      spinner.info("Adding shadcn Button component...");
+      spinner.info("Created components/ui directory for shadcn components");
+      
+      try {
+        await execa(
+          `cd ${projectName} && bunx --bun shadcn-vue add button`,
+          {
+            stdio: "ignore",
+            shell: true,
+          },
+        );
+        spinner.succeed("shadcn Button component added successfully");
+      } catch (error) {
+        spinner.warn("Failed to add shadcn Button component, continuing without it");
+        
+        // Only update index.vue if we created it (not if it already existed)
+        if (!await fse.pathExists(indexVuePath) || (await fs.readFile(indexVuePath, "utf-8")).includes("<Button>Click Me!</Button>")) {
+          const updatedIndexVueContent = `<template>
+  <div class="container mx-auto pt-6">
+    <h1 class="text-4xl font-semibold text-pink-600">Hello Nuxt 4!</h1>
+  </div>
+</template>`;
+          await fs.writeFile(indexVuePath, updatedIndexVueContent, "utf-8");
+        }
+      }
+    }
     spinner.succeed(
       `🎉 Nuxt 4 project ${projectName} has been created with @Nuxt/Icon, @Nuxt/Image, Pinia, Tailwind CSS and shadcn-nuxt!`,
     );
