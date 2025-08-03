@@ -139,7 +139,7 @@ import path from "path";
     // 7. Set up shadcn-vue
     spinner.info("Setting up shadcn-vue...");
     await execa(
-      `cd ${projectName} && bunx --bun shadcn-vue@1.0.3 init --defaults --silent`,
+      `cd ${projectName} && bunx --bun shadcn-vue init --defaults --silent`,
       {
         stdio: "ignore",
         shell: true,
@@ -247,7 +247,7 @@ export const useExampleStore = defineStore("example", () => {
     // 13. Add a sample shadcn Button component
     spinner.info("Adding shadcn Button component...");
     await execa(
-      `cd ${projectName} && bunx --bun shadcn-vue@1.0.3 add button`,
+      `cd ${projectName} && bunx --bun shadcn-vue add button`,
       {
         stdio: "ignore",
         shell: true,
