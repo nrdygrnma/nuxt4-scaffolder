@@ -65,6 +65,27 @@ import path from "path";
         shell: true,
       },
     );
+    
+    // Update tsconfig.json with path mappings
+    spinner.info("Updating tsconfig.json with path mappings...");
+    const tsconfigPath = path.join(projectName, "tsconfig.json");
+    if (await fse.pathExists(tsconfigPath)) {
+      const tsconfig = JSON.parse(await fs.readFile(tsconfigPath, "utf-8"));
+      
+      // Add baseUrl and paths if they don't exist
+      if (!tsconfig.compilerOptions) {
+        tsconfig.compilerOptions = {};
+      }
+      
+      tsconfig.compilerOptions.baseUrl = ".";
+      tsconfig.compilerOptions.paths = {
+        "@/*": ["./app/*"]
+      };
+      
+      await fs.writeFile(tsconfigPath, JSON.stringify(tsconfig, null, 2), "utf-8");
+    } else {
+      spinner.warn("tsconfig.json not found, skipping path mapping update");
+    }
     spinner.info("Installing Tailwind CSS...");
     const cssDir = path.join(projectName, "assets", "css");
     await fse.ensureDir(cssDir);

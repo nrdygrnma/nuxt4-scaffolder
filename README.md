@@ -44,7 +44,7 @@ This will automatically:
 1. Initialize a Nuxt 4 project (with Nuxt Image, Nuxt Icon, shadcn-nuxt and Pinia) using Bun.
 2. Update `package.json` to set the `name` to your project.
 3. Configure `nuxt.config.ts` for the project.
-4. Install TypeScript and Tailwind CSS, and generate a Tailwind config.
+4. Install TypeScript and Tailwind CSS, generate a Tailwind config, and configure TypeScript path mappings in tsconfig.json.
 5. Update `nuxt.config.ts` with CSS and Vite plugin settings.
 6. Add the `shadcn-nuxt` module and inject its configuration.
 7. Attempt to initialize `shadcn-vue` with defaults (continues even if this step fails).
