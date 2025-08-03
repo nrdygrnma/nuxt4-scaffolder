@@ -127,7 +127,11 @@ import path from "path";
       spinner.warn("tsconfig.json not found, skipping path mapping update");
     }
     spinner.info("Installing Tailwind CSS...");
-    const cssDir = path.join(projectName, "assets", "css");
+    // Create app directory if it doesn't exist yet
+    const tempAppDir = path.join(projectName, "app");
+    await fse.ensureDir(tempAppDir);
+    // Create assets/css directory in the app folder
+    const cssDir = path.join(tempAppDir, "assets", "css");
     await fse.ensureDir(cssDir);
     const cssPath = path.join(cssDir, "tailwind.css");
     await fs.writeFile(cssPath, `@import "tailwindcss";`, "utf-8");
@@ -136,7 +140,7 @@ import path from "path";
     cfg1 = cfg1.replace(
       /defineNuxtConfig\(\{/,
       `defineNuxtConfig({
-  css: ['~/assets/css/tailwind.css'],
+  css: ['~/app/assets/css/tailwind.css'],
   vite: { plugins: [tailwindcss()] },
 `,
     );
@@ -239,7 +243,6 @@ import path from "path";
         "pages",
         "layouts",
         "lib",
-        "assets",
         "stores",
       ];
       for (const item of items) {
