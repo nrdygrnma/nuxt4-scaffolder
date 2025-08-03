@@ -88,7 +88,8 @@ import path from "path";
         
         tsconfig.compilerOptions.baseUrl = ".";
         tsconfig.compilerOptions.paths = {
-          "@/*": ["./app/*"]
+          "@/*": ["./app/*"],
+          "~/*": ["./app/*"]
         };
         
         await fs.writeFile(tsconfigPath, JSON.stringify(tsconfig, null, 2), "utf-8");
@@ -107,7 +108,7 @@ import path from "path";
             if (tsconfigContent.includes('"baseUrl"')) {
               updatedContent = tsconfigContent.replace(
                 /"baseUrl"\s*:\s*"[^"]*"(,)?/,
-                '"baseUrl": ".",$1\n    "paths": {\n      "@/*": ["./app/*"]\n    }'
+                '"baseUrl": ".",$1\n    "paths": {\n      "@/*": ["./app/*"],\n      "~/*": ["./app/*"]\n    }'
               );
             } else {
               // Add both baseUrl and paths after compilerOptions opening
