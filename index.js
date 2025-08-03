@@ -139,7 +139,7 @@ import path from "path";
     // 7. Set up shadcn-vue
     spinner.info("Setting up shadcn-vue...");
     await execa(
-      `cd ${projectName} && bunx --bun shadcn-vue@latest init --defaults --silent`,
+      `cd ${projectName} && bunx --bun shadcn-vue@1.0.3 init --defaults --silent`,
       {
         stdio: "ignore",
         shell: true,
@@ -247,7 +247,7 @@ export const useExampleStore = defineStore("example", () => {
     // 13. Add a sample shadcn Button component
     spinner.info("Adding shadcn Button component...");
     await execa(
-      `cd ${projectName} && bunx --bun shadcn-vue@latest add button`,
+      `cd ${projectName} && bunx --bun shadcn-vue@1.0.3 add button`,
       {
         stdio: "ignore",
         shell: true,
@@ -262,8 +262,17 @@ export const useExampleStore = defineStore("example", () => {
    bun run dev
 `);
   } catch (err) {
-    spinner.fail("Upgrade process failed");
-    console.error(err);
+    spinner.fail("Scaffolding process failed");
+    console.error("Error details:", err);
+    
+    // Provide more helpful error message for shadcn-vue issues
+    if (err.message && err.message.includes("shadcn-vue")) {
+      console.log("\nThere was an issue with shadcn-vue initialization. You can try:");
+      console.log("1. Manually installing shadcn-vue in your project after completion");
+      console.log("2. Check for compatibility between shadcn-vue and Nuxt 4");
+      console.log(`3. Try a different version of shadcn-vue by editing the scaffolder code\n`);
+    }
+    
     process.exit(1);
   }
 })();

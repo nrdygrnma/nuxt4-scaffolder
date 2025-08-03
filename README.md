@@ -3,7 +3,7 @@
 A powerful, Bun-based CLI to scaffold and configure Nuxt 4 projects with:
 
 - **Nuxt Image**, **Nuxt Icon** and **Pinia** modules
-- **shadcn-nuxt** component library
+- **shadcn-nuxt** component library with **shadcn-vue v1.0.3**
 - **Tailwind CSS** + Vite integration
 - TypeScript support
 - Default directory structure under `app/`
